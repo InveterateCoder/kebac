@@ -2,9 +2,11 @@ package command
 
 import "os/exec"
 
-type Command struct{}
+type command struct{}
 
-func (*Command) GetKubectlPath() (string, error) {
+var Command command = command{}
+
+func (*command) GetKubectlPath() (string, error) {
 	path, err := exec.LookPath("kubectl")
 	if err != nil {
 		return "", err
