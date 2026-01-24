@@ -3,6 +3,8 @@ package app
 import (
 	"context"
 	"fmt"
+
+	"github.com/InveterateCoder/kebac/internal/command"
 )
 
 // App struct
@@ -28,4 +30,12 @@ func (a *App) startup(ctx context.Context) {
 // Greet returns a greeting for the given name
 func (a *App) Greet(name string) string {
 	return fmt.Sprintf("Hello %s, It's show time!", name)
+}
+
+func (a *App) GetKubectlPath() string {
+	path, err := command.Command.GetKubectlPath()
+	if err != nil {
+		return err.Error()
+	}
+	return path
 }
