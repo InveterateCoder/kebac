@@ -8,6 +8,12 @@ import {
   OpenExec,
   OpenPortForward,
 } from "../wailsjs/go/app/App";
+import {
+  WindowGetSize,
+  WindowIsMaximised,
+  WindowMaximise,
+  WindowSetSize,
+} from "../wailsjs/runtime/runtime";
 import { ActionPanel } from "@/components/ActionPanel";
 import { ErrorAlert } from "@/components/ErrorAlert";
 import { HistoryPanel } from "@/components/HistoryPanel";
@@ -33,6 +39,7 @@ type AlertItem = {
 
 const HISTORY_STORAGE_KEY = "kebac.history.v1";
 const THEME_STORAGE_KEY = "kebac.theme";
+const WINDOW_STORAGE_KEY = "kebac.window.v1";
 const HISTORY_LIMIT = 50;
 
 function App() {
@@ -107,6 +114,51 @@ function App() {
     if (typeof window === "undefined") return;
     window.localStorage.setItem(HISTORY_STORAGE_KEY, JSON.stringify(history));
   }, [history]);
+
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    const stored = window.localStorage.getItem(WINDOW_STORAGE_KEY);
+    if (stored) {
+      try {
+        const parsed = JSON.parse(stored) as {
+          w?: number;
+          h?: number;
+          maximised?: boolean;
+        };
+        if (typeof parsed.w === "number" && typeof parsed.h === "number") {
+          WindowSetSize(parsed.w, parsed.h);
+        }
+        if (parsed.maximised) {
+          WindowMaximise();
+        }
+      } catch {
+        // Ignore malformed window state.
+      }
+    }
+
+    let timer: number | undefined;
+    const handleResize = () => {
+      window.clearTimeout(timer);
+      timer = window.setTimeout(async () => {
+        try {
+          const size = await WindowGetSize();
+          const maximised = await WindowIsMaximised();
+          window.localStorage.setItem(
+            WINDOW_STORAGE_KEY,
+            JSON.stringify({ ...size, maximised }),
+          );
+        } catch {
+          // Ignore runtime errors (window may not be ready yet).
+        }
+      }, 200);
+    };
+
+    window.addEventListener("resize", handleResize);
+    return () => {
+      window.removeEventListener("resize", handleResize);
+      window.clearTimeout(timer);
+    };
+  }, []);
 
   useEffect(() => {
     if (typeof window === "undefined") return;
@@ -369,7 +421,7 @@ function App() {
         pushAlert(err instanceof Error ? err.message : String(err));
       }
     },
-    [pushAlert, OpenExec, OpenPortForward]
+    [pushAlert],
   );
 
   const blockReason = useMemo(() => {
@@ -415,7 +467,11 @@ function App() {
             onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
             aria-label="Toggle theme"
           >
-            {theme === "dark" ? <Sun className="h-4 w-4" /> : <MoonStar className="h-4 w-4" />}
+            {theme === "dark" ? (
+              <Sun className="h-4 w-4" />
+            ) : (
+              <MoonStar className="h-4 w-4" />
+            )}
           </Button>
         </div>
 
@@ -484,7 +540,10 @@ function App() {
                   onExecCommandChange={setExecCommand}
                   onPortForward={handlePortForward}
                   onExec={handleExec}
-                  busy={{ portForward: loading.portForward, exec: loading.exec }}
+                  busy={{
+                    portForward: loading.portForward,
+                    exec: loading.exec,
+                  }}
                 />
               </div>
             )}
