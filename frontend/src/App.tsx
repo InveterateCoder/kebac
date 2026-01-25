@@ -82,7 +82,12 @@ function App() {
     setLoading((prev) => ({ ...prev, contexts: true }));
     ListContexts()
       .then((res) => {
-        if (active) setContexts(res);
+        if (active) {
+          setContexts(res);
+          if (res.length === 1) {
+            setSelectedContext(res[0]);
+          }
+        }
       })
       .catch((err) => {
         if (active) {
@@ -157,7 +162,12 @@ function App() {
     setLoading((prev) => ({ ...prev, containers: true }));
     ListContainers(selectedContext, selectedNamespace, selectedPod)
       .then((res) => {
-        if (active) setContainers(res);
+        if (active) {
+          setContainers(res);
+          if (res.length === 1) {
+            setSelectedContainer(res[0]);
+          }
+        }
       })
       .catch((err) => {
         if (active) {
