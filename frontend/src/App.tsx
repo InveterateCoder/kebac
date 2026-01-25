@@ -10,6 +10,7 @@ import {
 } from "../wailsjs/go/app/App";
 import { ActionPanel } from "@/components/ActionPanel";
 import { ErrorAlert } from "@/components/ErrorAlert";
+import { HistoryPanel } from "@/components/HistoryPanel";
 import { InfoPanel } from "@/components/InfoPanel";
 import { SelectionPanel } from "@/components/SelectionPanel";
 import {
@@ -20,17 +21,22 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
-import type { KubectlInfo } from "@/types";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import type { HistoryEntry, KubectlInfo } from "@/types";
 
 type AlertItem = {
   id: number;
   message: string;
 };
 
+const HISTORY_STORAGE_KEY = "kebac.history.v1";
+const HISTORY_LIMIT = 50;
+
 function App() {
   const [info, setInfo] = useState<KubectlInfo | null>(null);
   const [alerts, setAlerts] = useState<AlertItem[]>([]);
   const alertIdRef = useRef(0);
+  const [history, setHistory] = useState<HistoryEntry[]>([]);
 
   const [contexts, setContexts] = useState<string[]>([]);
   const [namespaces, setNamespaces] = useState<string[]>([]);
@@ -67,6 +73,36 @@ function App() {
   const dismissAlert = useCallback((id: number) => {
     setAlerts((prev) => prev.filter((alert) => alert.id !== id));
   }, []);
+
+  const recordHistory = useCallback((entry: HistoryEntry) => {
+    setHistory((prev) => [entry, ...prev].slice(0, HISTORY_LIMIT));
+  }, []);
+
+  const createHistoryId = useCallback(() => {
+    if (typeof crypto !== "undefined" && "randomUUID" in crypto) {
+      return crypto.randomUUID();
+    }
+    return `${Date.now()}-${Math.random().toString(16).slice(2)}`;
+  }, []);
+
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    const stored = window.localStorage.getItem(HISTORY_STORAGE_KEY);
+    if (!stored) return;
+    try {
+      const parsed = JSON.parse(stored) as HistoryEntry[];
+      if (Array.isArray(parsed)) {
+        setHistory(parsed);
+      }
+    } catch {
+      // Ignore malformed history.
+    }
+  }, []);
+
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    window.localStorage.setItem(HISTORY_STORAGE_KEY, JSON.stringify(history));
+  }, [history]);
 
   useEffect(() => {
     let active = true;
@@ -233,6 +269,16 @@ function App() {
         localPort: local,
         remotePort: remote,
       });
+      recordHistory({
+        id: createHistoryId(),
+        kind: "port-forward",
+        context: selectedContext,
+        namespace: selectedNamespace,
+        pod: selectedPod,
+        localPort: local,
+        remotePort: remote,
+        createdAt: new Date().toISOString(),
+      });
     } catch (err) {
       pushAlert(err instanceof Error ? err.message : String(err));
     } finally {
@@ -259,12 +305,53 @@ function App() {
         container: selectedContainer,
         command: execCommand,
       });
+      recordHistory({
+        id: createHistoryId(),
+        kind: "exec",
+        context: selectedContext,
+        namespace: selectedNamespace,
+        pod: selectedPod,
+        container: selectedContainer,
+        command: execCommand,
+        createdAt: new Date().toISOString(),
+      });
     } catch (err) {
       pushAlert(err instanceof Error ? err.message : String(err));
     } finally {
       setLoading((prev) => ({ ...prev, exec: false }));
     }
   };
+
+  const handleReplay = useCallback(
+    async (entry: HistoryEntry) => {
+      try {
+        if (entry.kind === "port-forward") {
+          if (!entry.localPort || !entry.remotePort) {
+            pushAlert("History entry is missing port information.");
+            return;
+          }
+          await OpenPortForward({
+            context: entry.context,
+            namespace: entry.namespace,
+            pod: entry.pod,
+            localPort: entry.localPort,
+            remotePort: entry.remotePort,
+          });
+        } else {
+          await OpenExec({
+            context: entry.context,
+            namespace: entry.namespace,
+            pod: entry.pod,
+            container: entry.container || "",
+            command: entry.command || "",
+          });
+        }
+      } catch (err) {
+        pushAlert(err instanceof Error ? err.message : String(err));
+      }
+    },
+    [pushAlert, OpenExec, OpenPortForward]
+  );
 
   const blockReason = useMemo(() => {
     if (info?.error) return info.error;
@@ -301,55 +388,66 @@ function App() {
 
         <Separator />
 
-        {blockReason ? (
-          <Card className="bg-card/80">
-            <CardHeader>
-              <CardTitle className="text-2xl font-semibold tracking-tight">
-                Resolve errors to continue
-              </CardTitle>
-              <CardDescription>
-                Fix the issue above to unlock context and pod selection.
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="text-muted-foreground text-sm">
-              Once the error is resolved, restart the app or re-open this
-              window.
-            </CardContent>
-          </Card>
-        ) : (
-          <div className="grid gap-6 lg:grid-cols-[minmax(0,1.2fr)_minmax(0,1fr)]">
-            <SelectionPanel
-              contexts={contexts}
-              namespaces={namespaces}
-              pods={pods}
-              containers={containers}
-              selectedContext={selectedContext}
-              selectedNamespace={selectedNamespace}
-              selectedPod={selectedPod}
-              selectedContainer={selectedContainer}
-              onContextChange={handleContextChange}
-              onNamespaceChange={handleNamespaceChange}
-              onPodChange={handlePodChange}
-              onContainerChange={setSelectedContainer}
-              loading={loading}
-            />
-            <ActionPanel
-              context={selectedContext}
-              namespace={selectedNamespace}
-              pod={selectedPod}
-              container={selectedContainer}
-              localPort={localPort}
-              remotePort={remotePort}
-              execCommand={execCommand}
-              onLocalPortChange={setLocalPort}
-              onRemotePortChange={setRemotePort}
-              onExecCommandChange={setExecCommand}
-              onPortForward={handlePortForward}
-              onExec={handleExec}
-              busy={{ portForward: loading.portForward, exec: loading.exec }}
-            />
-          </div>
-        )}
+        <Tabs defaultValue="history" className="w-full">
+          <TabsList variant="line" className="w-full justify-start">
+            <TabsTrigger value="history">History</TabsTrigger>
+            <TabsTrigger value="workspace">Workspace</TabsTrigger>
+          </TabsList>
+          <TabsContent value="history" className="mt-6">
+            <HistoryPanel entries={history} onReplay={handleReplay} />
+          </TabsContent>
+          <TabsContent value="workspace" className="mt-6">
+            {blockReason ? (
+              <Card className="bg-card/80">
+                <CardHeader>
+                  <CardTitle className="text-2xl font-semibold tracking-tight">
+                    Resolve errors to continue
+                  </CardTitle>
+                  <CardDescription>
+                    Fix the issue above to unlock context and pod selection.
+                  </CardDescription>
+                </CardHeader>
+                <CardContent className="text-muted-foreground text-sm">
+                  Once the error is resolved, restart the app or re-open this
+                  window.
+                </CardContent>
+              </Card>
+            ) : (
+              <div className="grid gap-6 lg:grid-cols-[minmax(0,1.2fr)_minmax(0,1fr)]">
+                <SelectionPanel
+                  contexts={contexts}
+                  namespaces={namespaces}
+                  pods={pods}
+                  containers={containers}
+                  selectedContext={selectedContext}
+                  selectedNamespace={selectedNamespace}
+                  selectedPod={selectedPod}
+                  selectedContainer={selectedContainer}
+                  onContextChange={handleContextChange}
+                  onNamespaceChange={handleNamespaceChange}
+                  onPodChange={handlePodChange}
+                  onContainerChange={setSelectedContainer}
+                  loading={loading}
+                />
+                <ActionPanel
+                  context={selectedContext}
+                  namespace={selectedNamespace}
+                  pod={selectedPod}
+                  container={selectedContainer}
+                  localPort={localPort}
+                  remotePort={remotePort}
+                  execCommand={execCommand}
+                  onLocalPortChange={setLocalPort}
+                  onRemotePortChange={setRemotePort}
+                  onExecCommandChange={setExecCommand}
+                  onPortForward={handlePortForward}
+                  onExec={handleExec}
+                  busy={{ portForward: loading.portForward, exec: loading.exec }}
+                />
+              </div>
+            )}
+          </TabsContent>
+        </Tabs>
       </div>
     </div>
   );
