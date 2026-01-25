@@ -1,3 +1,4 @@
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
 import type { KubectlInfo } from "@/types";
@@ -52,6 +53,12 @@ export function InfoPanel({
         ) : null}
       </summary>
       <div className={cn("grid gap-4 px-6 pb-6", contentClassName)}>
+        {blockReason ? (
+          <Alert variant="destructive" className="shadow-sm">
+            <AlertTitle>Environment issue</AlertTitle>
+            <AlertDescription>{blockReason}</AlertDescription>
+          </Alert>
+        ) : null}
         <InfoRow
           label="Status"
           value={
