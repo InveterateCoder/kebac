@@ -1,0 +1,7 @@
+[Desktop Entry]
+Type=Application
+Name=Kebac
+Exec=/usr/bin/kebac
+Icon=kebac
+Categories=Utility;
+Terminal=false

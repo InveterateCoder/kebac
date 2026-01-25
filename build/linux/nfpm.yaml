@@ -1,0 +1,15 @@
+name: kebac
+arch: amd64
+platform: linux
+version: 0.1.0
+maintainer: "InveterateCoder <inveterate.coder@gmail.com>"
+description: "Kebac - kubectl helper"
+license: "MIT"
+homepage: "https://github.com/InveterateCoder/kebac"
+contents:
+  - src: build/bin/kebac
+    dst: /usr/bin/kebac
+  - src: build/appicon.png
+    dst: /usr/share/icons/hicolor/512x512/apps/kebac.png
+  - src: build/linux/kebac.desktop
+    dst: /usr/share/applications/kebac.desktop
