@@ -1,43 +1,57 @@
 import { Badge } from "@/components/ui/badge";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
 import { cn } from "@/lib/utils";
 import type { KubectlInfo } from "@/types";
 import type { ReactNode } from "react";
+import { ChevronDown } from "lucide-react";
+import { useState } from "react";
 
 type InfoPanelProps = {
   info: KubectlInfo | null;
-  hideHeader?: boolean;
   className?: string;
   contentClassName?: string;
+  blockReason?: string;
 };
 
 export function InfoPanel({
   info,
-  hideHeader,
   className,
   contentClassName,
+  blockReason,
 }: InfoPanelProps) {
   const ready = info?.ready && !info?.error;
+  const [open, setOpen] = useState(false);
 
   return (
-    <Card className={cn("bg-card/80", className)}>
-      {!hideHeader ? (
-        <CardHeader>
-          <CardTitle className="text-2xl font-semibold tracking-tight">
-            Environment
-          </CardTitle>
-          <CardDescription>
-            Kubectl and plugin diagnostics for this machine.
-          </CardDescription>
-        </CardHeader>
-      ) : null}
-      <CardContent className={cn("grid gap-4", contentClassName)}>
+    <details
+      className={cn("group rounded-xl border bg-card/80", className)}
+      open={blockReason ? true : open}
+      onToggle={(event) => {
+        if (blockReason) {
+          event.currentTarget.open = true;
+          return;
+        }
+        setOpen(event.currentTarget.open);
+      }}
+    >
+      <summary
+        className={cn(
+          "flex list-none items-center justify-between gap-4 px-6 py-5",
+          blockReason ? "cursor-default" : "cursor-pointer",
+        )}
+        onClick={(event) => {
+          if (blockReason) {
+            event.preventDefault();
+          }
+        }}
+      >
+        <div className="space-y-1">
+          <p className="text-muted-foreground text-2xl font-semibold uppercase tracking-[0.35em]">Kebac</p>
+        </div>
+        {!blockReason ? (
+          <ChevronDown className="h-4 w-4 transition-transform group-open:rotate-180" />
+        ) : null}
+      </summary>
+      <div className={cn("grid gap-4 px-6 pb-6", contentClassName)}>
         <InfoRow
           label="Status"
           value={
@@ -67,8 +81,8 @@ export function InfoPanel({
           label="OIDC Login Plugin"
           value={info?.kubeloginPath || "Not detected"}
         />
-      </CardContent>
-    </Card>
+      </div>
+    </details>
   );
 }
 
