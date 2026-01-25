@@ -63,8 +63,15 @@ export function HistoryPanel({
             entry.kind === "port-forward"
               ? `Ports ${entry.localPort}:${entry.remotePort}`
               : `Exec ${entry.container || "default"} • ${entry.command || "default shell"}`;
-          const scope = `${entry.context} • ${entry.namespace} • ${entry.pod}`;
-          const timestamp = new Date(entry.createdAt).toLocaleString();
+          const timestamp = new Intl.DateTimeFormat(undefined, {
+            year: "numeric",
+            month: "2-digit",
+            day: "2-digit",
+            hour: "2-digit",
+            minute: "2-digit",
+            second: "2-digit",
+            hour12: false,
+          }).format(new Date(entry.createdAt));
 
           return (
             <div key={entry.id} className="space-y-3">
@@ -74,7 +81,13 @@ export function HistoryPanel({
                     <Badge variant="secondary">
                       {entry.kind === "port-forward" ? "Port forward" : "Exec"}
                     </Badge>
-                    <span className="text-sm font-medium">{scope}</span>
+                    <Badge className="bg-sky-500 text-white">
+                      {entry.context}
+                    </Badge>
+                    <Badge className="bg-emerald-500 text-white">
+                      {entry.namespace}
+                    </Badge>
+                    <Badge className="bg-amber-500 text-white">{entry.pod}</Badge>
                   </div>
                   <p className="text-muted-foreground text-xs">{meta}</p>
                   <p className="text-muted-foreground text-xs">{timestamp}</p>
