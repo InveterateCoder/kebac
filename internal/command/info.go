@@ -11,10 +11,6 @@ type CommandInfo struct {
 	Ready          bool   `json:"ready"`
 }
 
-func (c *command) isReady() bool {
-	return c.info.KubectlPath != "" && c.info.Error == ""
-}
-
 func (c *command) GetInfo() CommandInfo {
 	info := CommandInfo{}
 
@@ -27,7 +23,7 @@ func (c *command) GetInfo() CommandInfo {
 	info.KubectlPath = path
 	info.KubeconfigPath = kubeconfigPath()
 
-	version, err := c.kubectl("version", "--client", "--short")
+	version, err := c.kubectl("version", "--client")
 	if err != nil {
 		info.Error = err.Error()
 	} else {

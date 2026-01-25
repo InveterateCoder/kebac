@@ -33,7 +33,7 @@ export function ResourceSelect({
         <SelectTrigger className="w-full">
           <SelectValue placeholder={placeholder} />
         </SelectTrigger>
-        <SelectContent>
+        <SelectContent className="max-h-72">
           {options.map((option) => (
             <SelectItem key={option} value={option}>
               {option}
