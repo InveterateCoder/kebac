@@ -28,6 +28,7 @@ type ActionPanelProps = {
     portForward?: boolean
     exec?: boolean
   }
+  disabled?: boolean
 }
 
 export function ActionPanel({
@@ -44,6 +45,7 @@ export function ActionPanel({
   onPortForward,
   onExec,
   busy,
+  disabled,
 }: ActionPanelProps) {
   const hasSelection = Boolean(context && namespace && pod)
   const canExec = hasSelection && Boolean(container)
@@ -85,6 +87,7 @@ export function ActionPanel({
                 onChange={(event) => onLocalPortChange(event.target.value)}
                 placeholder="8080"
                 inputMode="numeric"
+                disabled={disabled}
               />
             </div>
             <div className="space-y-2">
@@ -94,11 +97,15 @@ export function ActionPanel({
                 onChange={(event) => onRemotePortChange(event.target.value)}
                 placeholder="80"
                 inputMode="numeric"
+                disabled={disabled}
               />
             </div>
           </div>
           <p className="text-muted-foreground text-xs">{portPreview}</p>
-          <Button onClick={onPortForward} disabled={!hasSelection || busy?.portForward}>
+          <Button
+            onClick={onPortForward}
+            disabled={disabled || !hasSelection || busy?.portForward}
+          >
             {busy?.portForward ? "Launching..." : "Open port forward"}
           </Button>
         </section>
@@ -121,13 +128,14 @@ export function ActionPanel({
               value={execCommand}
               onChange={(event) => onExecCommandChange(event.target.value)}
               placeholder="sh"
+              disabled={disabled}
             />
             <p className="text-muted-foreground text-xs">
               Leave blank to default to <span className="font-semibold">sh</span>.
             </p>
           </div>
           <p className="text-muted-foreground text-xs">{execPreview}</p>
-          <Button onClick={onExec} disabled={!canExec || busy?.exec}>
+          <Button onClick={onExec} disabled={disabled || !canExec || busy?.exec}>
             {busy?.exec ? "Launching..." : "Open exec terminal"}
           </Button>
         </section>

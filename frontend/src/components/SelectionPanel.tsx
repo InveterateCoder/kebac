@@ -28,6 +28,7 @@ type SelectionPanelProps = {
     pods?: boolean
     containers?: boolean
   }
+  disabled?: boolean
 }
 
 export function SelectionPanel({
@@ -44,6 +45,7 @@ export function SelectionPanel({
   onPodChange,
   onContainerChange,
   loading,
+  disabled,
 }: SelectionPanelProps) {
   return (
     <Card className="bg-card/80">
@@ -67,6 +69,7 @@ export function SelectionPanel({
           value={selectedContext}
           options={contexts}
           onChange={onContextChange}
+          disabled={disabled}
         />
         <SearchableSelect
           label="Namespace"
@@ -74,7 +77,7 @@ export function SelectionPanel({
           value={selectedNamespace}
           options={namespaces}
           onChange={onNamespaceChange}
-          disabled={!selectedContext}
+          disabled={disabled || !selectedContext}
           hint={selectedContext ? "Active namespaces only." : "Select a context first."}
         />
         <ResourceSelect
@@ -83,7 +86,7 @@ export function SelectionPanel({
           value={selectedPod}
           options={pods}
           onChange={onPodChange}
-          disabled={!selectedNamespace}
+          disabled={disabled || !selectedNamespace}
           hint={selectedNamespace ? "Pods in the selected namespace." : "Select a namespace first."}
         />
         <ResourceSelect
@@ -92,7 +95,7 @@ export function SelectionPanel({
           value={selectedContainer}
           options={containers}
           onChange={onContainerChange}
-          disabled={!selectedPod}
+          disabled={disabled || !selectedPod}
           hint={selectedPod ? "Containers for the selected pod." : "Select a pod first."}
         />
       </CardContent>

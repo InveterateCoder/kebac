@@ -12,6 +12,13 @@ import { ActionPanel } from "@/components/ActionPanel";
 import { ErrorAlert } from "@/components/ErrorAlert";
 import { InfoPanel } from "@/components/InfoPanel";
 import { SelectionPanel } from "@/components/SelectionPanel";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
 import type { KubectlInfo } from "@/types";
 
@@ -229,7 +236,7 @@ function App() {
   }, [error, info?.error]);
 
   return (
-    <div className="min-h-screen bg-[radial-gradient(circle_at_top,_hsl(var(--accent))_0%,_transparent_45%),radial-gradient(circle_at_bottom,_hsl(var(--primary))_0%,_transparent_40%)]">
+    <div className="min-h-screen bg-[radial-gradient(circle_at_top,hsl(var(--accent))_0%,transparent_45%),radial-gradient(circle_at_bottom,hsl(var(--primary))_0%,transparent_40%)]">
       <div className="mx-auto flex min-h-screen max-w-6xl flex-col gap-8 px-4 py-10">
         <header className="space-y-3">
           <p className="text-muted-foreground text-xs font-semibold uppercase tracking-[0.35em]">
@@ -250,38 +257,54 @@ function App() {
 
         <Separator />
 
-        <div className="grid gap-6 lg:grid-cols-[minmax(0,1.2fr)_minmax(0,1fr)]">
-          <SelectionPanel
-            contexts={contexts}
-            namespaces={namespaces}
-            pods={pods}
-            containers={containers}
-            selectedContext={selectedContext}
-            selectedNamespace={selectedNamespace}
-            selectedPod={selectedPod}
-            selectedContainer={selectedContainer}
-            onContextChange={handleContextChange}
-            onNamespaceChange={handleNamespaceChange}
-            onPodChange={handlePodChange}
-            onContainerChange={setSelectedContainer}
-            loading={loading}
-          />
-          <ActionPanel
-            context={selectedContext}
-            namespace={selectedNamespace}
-            pod={selectedPod}
-            container={selectedContainer}
-            localPort={localPort}
-            remotePort={remotePort}
-            execCommand={execCommand}
-            onLocalPortChange={setLocalPort}
-            onRemotePortChange={setRemotePort}
-            onExecCommandChange={setExecCommand}
-            onPortForward={handlePortForward}
-            onExec={handleExec}
-            busy={{ portForward: loading.portForward, exec: loading.exec }}
-          />
-        </div>
+        {activeError ? (
+          <Card className="bg-card/80">
+            <CardHeader>
+              <CardTitle className="text-2xl font-semibold tracking-tight">
+                Resolve errors to continue
+              </CardTitle>
+              <CardDescription>
+                Fix the issue above to unlock context and pod selection.
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="text-muted-foreground text-sm">
+              Once the error is resolved, restart the app or re-open this window.
+            </CardContent>
+          </Card>
+        ) : (
+          <div className="grid gap-6 lg:grid-cols-[minmax(0,1.2fr)_minmax(0,1fr)]">
+            <SelectionPanel
+              contexts={contexts}
+              namespaces={namespaces}
+              pods={pods}
+              containers={containers}
+              selectedContext={selectedContext}
+              selectedNamespace={selectedNamespace}
+              selectedPod={selectedPod}
+              selectedContainer={selectedContainer}
+              onContextChange={handleContextChange}
+              onNamespaceChange={handleNamespaceChange}
+              onPodChange={handlePodChange}
+              onContainerChange={setSelectedContainer}
+              loading={loading}
+            />
+            <ActionPanel
+              context={selectedContext}
+              namespace={selectedNamespace}
+              pod={selectedPod}
+              container={selectedContainer}
+              localPort={localPort}
+              remotePort={remotePort}
+              execCommand={execCommand}
+              onLocalPortChange={setLocalPort}
+              onRemotePortChange={setRemotePort}
+              onExecCommandChange={setExecCommand}
+              onPortForward={handlePortForward}
+              onExec={handleExec}
+              busy={{ portForward: loading.portForward, exec: loading.exec }}
+            />
+          </div>
+        )}
       </div>
     </div>
   );
