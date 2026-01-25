@@ -278,14 +278,9 @@ function App() {
           <p className="text-muted-foreground text-xs font-semibold uppercase tracking-[0.35em]">
             Kebac
           </p>
-          <h1 className="text-4xl font-extrabold tracking-tight lg:text-5xl">
-            Kubectl helper workspace
-          </h1>
-          <p className="text-muted-foreground text-lg">
-            Select a context, namespace, and pod, then launch a port-forward or
-            exec terminal with a single click.
-          </p>
         </header>
+
+        <Separator />
 
         {alerts.length ? (
           <div className="pointer-events-none fixed right-6 top-6 z-50 flex w-full max-w-sm flex-col gap-3">
