@@ -20,9 +20,11 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import type { HistoryEntry, KubectlInfo } from "@/types";
+import { MoonStar, Sun } from "lucide-react";
 
 type AlertItem = {
   id: number;
@@ -30,6 +32,7 @@ type AlertItem = {
 };
 
 const HISTORY_STORAGE_KEY = "kebac.history.v1";
+const THEME_STORAGE_KEY = "kebac.theme";
 const HISTORY_LIMIT = 50;
 
 function App() {
@@ -37,6 +40,7 @@ function App() {
   const [alerts, setAlerts] = useState<AlertItem[]>([]);
   const alertIdRef = useRef(0);
   const [history, setHistory] = useState<HistoryEntry[]>([]);
+  const [theme, setTheme] = useState<"dark" | "light">("dark");
 
   const [contexts, setContexts] = useState<string[]>([]);
   const [namespaces, setNamespaces] = useState<string[]>([]);
@@ -103,6 +107,21 @@ function App() {
     if (typeof window === "undefined") return;
     window.localStorage.setItem(HISTORY_STORAGE_KEY, JSON.stringify(history));
   }, [history]);
+
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    const stored = window.localStorage.getItem(THEME_STORAGE_KEY);
+    if (stored === "light" || stored === "dark") {
+      setTheme(stored);
+    }
+  }, []);
+
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    const root = window.document.documentElement;
+    root.classList.toggle("dark", theme === "dark");
+    window.localStorage.setItem(THEME_STORAGE_KEY, theme);
+  }, [theme]);
 
   useEffect(() => {
     let active = true;
@@ -383,6 +402,22 @@ function App() {
             ))}
           </div>
         ) : null}
+
+        <div className="flex flex-wrap items-center justify-between gap-4">
+          <div className="space-y-1">
+            <p className="text-muted-foreground text-xs font-semibold uppercase tracking-[0.35em]">
+              Kebac
+            </p>
+          </div>
+          <Button
+            variant="outline"
+            size="icon"
+            onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
+            aria-label="Toggle theme"
+          >
+            {theme === "dark" ? <Sun className="h-4 w-4" /> : <MoonStar className="h-4 w-4" />}
+          </Button>
+        </div>
 
         <InfoPanel info={info} blockReason={blockReason} />
 

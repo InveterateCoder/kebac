@@ -21,7 +21,7 @@ func main() {
 	err := wails.Run(&options.App{
 		Title:     "kebac",
 		Width:     1200,
-		Height:    820,
+		Height:    960,
 		MinWidth:  720,
 		MinHeight: 640,
 		AssetServer: &assetserver.Options{

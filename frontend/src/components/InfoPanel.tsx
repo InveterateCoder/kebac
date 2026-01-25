@@ -46,7 +46,7 @@ export function InfoPanel({
         }}
       >
         <div className="space-y-1">
-          <p className="text-muted-foreground text-2xl font-semibold uppercase tracking-[0.35em]">Kebac</p>
+          <p className="text-muted-foreground text-2xl font-semibold tracking-tight">Info</p>
         </div>
         {!blockReason ? (
           <ChevronDown className="h-4 w-4 transition-transform group-open:rotate-180" />
