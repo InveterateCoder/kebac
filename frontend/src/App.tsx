@@ -1,14 +1,14 @@
 import { useEffect, useState } from "react";
-import { GetKubectlPath } from "../wailsjs/go/app/App";
+import { GetKubectlInfo } from "../wailsjs/go/app/App";
 
 function App() {
   const [path, setPath] = useState("");
 
   useEffect(() => {
     let alive = true;
-    GetKubectlPath()
+    GetKubectlInfo()
       .then((res) => {
-        if (alive) setPath(res);
+        if (alive) setPath(JSON.stringify(res));
       })
       .catch((err) => {
         if (alive) {
