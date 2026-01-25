@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
   GetKubectlInfo,
   ListContainers,
@@ -22,9 +22,15 @@ import {
 import { Separator } from "@/components/ui/separator";
 import type { KubectlInfo } from "@/types";
 
+type AlertItem = {
+  id: number;
+  message: string;
+};
+
 function App() {
   const [info, setInfo] = useState<KubectlInfo | null>(null);
-  const [error, setError] = useState("");
+  const [alerts, setAlerts] = useState<AlertItem[]>([]);
+  const alertIdRef = useRef(0);
 
   const [contexts, setContexts] = useState<string[]>([]);
   const [namespaces, setNamespaces] = useState<string[]>([]);
@@ -36,8 +42,8 @@ function App() {
   const [selectedPod, setSelectedPod] = useState("");
   const [selectedContainer, setSelectedContainer] = useState("");
 
-  const [localPort, setLocalPort] = useState("8080");
-  const [remotePort, setRemotePort] = useState("80");
+  const [localPort, setLocalPort] = useState("");
+  const [remotePort, setRemotePort] = useState("");
   const [execCommand, setExecCommand] = useState("sh");
 
   const [loading, setLoading] = useState({
@@ -49,6 +55,19 @@ function App() {
     exec: false,
   });
 
+  const pushAlert = useCallback((message: string) => {
+    if (!message) return;
+    setAlerts((prev) => {
+      const nextId = alertIdRef.current + 1;
+      alertIdRef.current = nextId;
+      return [...prev, { id: nextId, message }];
+    });
+  }, []);
+
+  const dismissAlert = useCallback((id: number) => {
+    setAlerts((prev) => prev.filter((alert) => alert.id !== id));
+  }, []);
+
   useEffect(() => {
     let active = true;
     GetKubectlInfo()
@@ -57,7 +76,7 @@ function App() {
       })
       .catch((err) => {
         if (active) {
-          setError(err instanceof Error ? err.message : String(err));
+          pushAlert(err instanceof Error ? err.message : String(err));
         }
       });
     setLoading((prev) => ({ ...prev, contexts: true }));
@@ -67,7 +86,7 @@ function App() {
       })
       .catch((err) => {
         if (active) {
-          setError(err instanceof Error ? err.message : String(err));
+          pushAlert(err instanceof Error ? err.message : String(err));
         }
       })
       .finally(() => {
@@ -78,7 +97,7 @@ function App() {
     return () => {
       active = false;
     };
-  }, []);
+  }, [pushAlert]);
 
   useEffect(() => {
     if (!selectedContext) {
@@ -92,7 +111,7 @@ function App() {
       })
       .catch((err) => {
         if (active) {
-          setError(err instanceof Error ? err.message : String(err));
+          pushAlert(err instanceof Error ? err.message : String(err));
         }
       })
       .finally(() => {
@@ -103,7 +122,7 @@ function App() {
     return () => {
       active = false;
     };
-  }, [selectedContext]);
+  }, [pushAlert, selectedContext]);
 
   useEffect(() => {
     if (!selectedContext || !selectedNamespace) {
@@ -117,7 +136,7 @@ function App() {
       })
       .catch((err) => {
         if (active) {
-          setError(err instanceof Error ? err.message : String(err));
+          pushAlert(err instanceof Error ? err.message : String(err));
         }
       })
       .finally(() => {
@@ -128,7 +147,7 @@ function App() {
     return () => {
       active = false;
     };
-  }, [selectedContext, selectedNamespace]);
+  }, [pushAlert, selectedContext, selectedNamespace]);
 
   useEffect(() => {
     if (!selectedContext || !selectedNamespace || !selectedPod) {
@@ -142,7 +161,7 @@ function App() {
       })
       .catch((err) => {
         if (active) {
-          setError(err instanceof Error ? err.message : String(err));
+          pushAlert(err instanceof Error ? err.message : String(err));
         }
       })
       .finally(() => {
@@ -153,7 +172,7 @@ function App() {
     return () => {
       active = false;
     };
-  }, [selectedContext, selectedNamespace, selectedPod]);
+  }, [pushAlert, selectedContext, selectedNamespace, selectedPod]);
 
   const handleContextChange = (value: string) => {
     setSelectedContext(value);
@@ -180,15 +199,19 @@ function App() {
   };
 
   const handlePortForward = async () => {
-    setError("");
     if (!selectedContext || !selectedNamespace || !selectedPod) {
-      setError("Select a context, namespace, and pod before port forwarding.");
+      pushAlert("Select a context, namespace, and pod before port forwarding.");
       return;
     }
     const local = Number(localPort);
     const remote = Number(remotePort);
-    if (!Number.isInteger(local) || !Number.isInteger(remote) || local <= 0 || remote <= 0) {
-      setError("Ports must be positive integers.");
+    if (
+      !Number.isInteger(local) ||
+      !Number.isInteger(remote) ||
+      local <= 0 ||
+      remote <= 0
+    ) {
+      pushAlert("Ports must be positive integers.");
       return;
     }
     setLoading((prev) => ({ ...prev, portForward: true }));
@@ -201,16 +224,20 @@ function App() {
         remotePort: remote,
       });
     } catch (err) {
-      setError(err instanceof Error ? err.message : String(err));
+      pushAlert(err instanceof Error ? err.message : String(err));
     } finally {
       setLoading((prev) => ({ ...prev, portForward: false }));
     }
   };
 
   const handleExec = async () => {
-    setError("");
-    if (!selectedContext || !selectedNamespace || !selectedPod || !selectedContainer) {
-      setError("Select a context, namespace, pod, and container before exec.");
+    if (
+      !selectedContext ||
+      !selectedNamespace ||
+      !selectedPod ||
+      !selectedContainer
+    ) {
+      pushAlert("Select a context, namespace, pod, and container before exec.");
       return;
     }
     setLoading((prev) => ({ ...prev, exec: true }));
@@ -223,17 +250,26 @@ function App() {
         command: execCommand,
       });
     } catch (err) {
-      setError(err instanceof Error ? err.message : String(err));
+      pushAlert(err instanceof Error ? err.message : String(err));
     } finally {
       setLoading((prev) => ({ ...prev, exec: false }));
     }
   };
 
-  const activeError = useMemo(() => {
-    if (error) return error;
+  const blockReason = useMemo(() => {
     if (info?.error) return info.error;
+    if (!info) return "";
+    if (!info.kubectlPath && !info.kubeloginPath) {
+      return "kubectl and kubectl-oidc_login plugin were not detected.";
+    }
+    if (!info.kubectlPath) {
+      return "kubectl was not detected on this machine.";
+    }
+    if (!info.kubeloginPath) {
+      return "kubectl-oidc_login plugin was not detected.";
+    }
     return "";
-  }, [error, info?.error]);
+  }, [info]);
 
   return (
     <div className="min-h-screen bg-[radial-gradient(circle_at_top,hsl(var(--accent))_0%,transparent_45%),radial-gradient(circle_at_bottom,hsl(var(--primary))_0%,transparent_40%)]">
@@ -251,13 +287,24 @@ function App() {
           </p>
         </header>
 
-        <ErrorAlert message={activeError} />
+        {alerts.length ? (
+          <div className="pointer-events-none fixed right-6 top-6 z-50 flex w-full max-w-sm flex-col gap-3">
+            {alerts.map((alert) => (
+              <ErrorAlert
+                key={alert.id}
+                message={alert.message}
+                onClose={() => dismissAlert(alert.id)}
+                className="pointer-events-auto shadow-lg"
+              />
+            ))}
+          </div>
+        ) : null}
 
         <InfoPanel info={info} />
 
         <Separator />
 
-        {activeError ? (
+        {blockReason ? (
           <Card className="bg-card/80">
             <CardHeader>
               <CardTitle className="text-2xl font-semibold tracking-tight">
@@ -268,7 +315,8 @@ function App() {
               </CardDescription>
             </CardHeader>
             <CardContent className="text-muted-foreground text-sm">
-              Once the error is resolved, restart the app or re-open this window.
+              Once the error is resolved, restart the app or re-open this
+              window.
             </CardContent>
           </Card>
         ) : (
