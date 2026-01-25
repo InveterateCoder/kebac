@@ -42,8 +42,8 @@ function App() {
   const [selectedPod, setSelectedPod] = useState("");
   const [selectedContainer, setSelectedContainer] = useState("");
 
-  const [localPort, setLocalPort] = useState("");
-  const [remotePort, setRemotePort] = useState("");
+  const [localPort, setLocalPort] = useState("5432");
+  const [remotePort, setRemotePort] = useState("5432");
   const [execCommand, setExecCommand] = useState("sh");
 
   const [loading, setLoading] = useState({

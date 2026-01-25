@@ -85,7 +85,7 @@ export function ActionPanel({
               <Input
                 value={localPort}
                 onChange={(event) => onLocalPortChange(event.target.value)}
-                placeholder="8080"
+                placeholder="5432"
                 inputMode="numeric"
                 disabled={disabled}
               />
@@ -95,7 +95,7 @@ export function ActionPanel({
               <Input
                 value={remotePort}
                 onChange={(event) => onRemotePortChange(event.target.value)}
-                placeholder="80"
+                placeholder="5432"
                 inputMode="numeric"
                 disabled={disabled}
               />
