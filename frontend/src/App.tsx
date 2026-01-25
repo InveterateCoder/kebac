@@ -21,6 +21,7 @@ import {
 } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
 import type { KubectlInfo } from "@/types";
+import { ChevronDown } from "lucide-react";
 
 type AlertItem = {
   id: number;
@@ -45,6 +46,7 @@ function App() {
   const [localPort, setLocalPort] = useState("5432");
   const [remotePort, setRemotePort] = useState("5432");
   const [execCommand, setExecCommand] = useState("sh");
+  const [envOpen, setEnvOpen] = useState(false);
 
   const [loading, setLoading] = useState({
     contexts: false,
@@ -281,6 +283,10 @@ function App() {
     return "";
   }, [info]);
 
+  useEffect(() => {
+    setEnvOpen(Boolean(blockReason));
+  }, [blockReason]);
+
   return (
     <div className="min-h-screen bg-[radial-gradient(circle_at_top,hsl(var(--accent))_0%,transparent_45%),radial-gradient(circle_at_bottom,hsl(var(--primary))_0%,transparent_40%)]">
       <div className="mx-auto flex min-h-screen max-w-6xl flex-col gap-8 px-4 py-10">
@@ -305,7 +311,44 @@ function App() {
           </div>
         ) : null}
 
-        <InfoPanel info={info} />
+        <details
+          className="group rounded-xl border bg-card/80 px-6 py-5"
+          open={blockReason ? true : envOpen}
+          onToggle={(event) => {
+            if (blockReason) {
+              event.currentTarget.open = true;
+              return;
+            }
+            setEnvOpen(event.currentTarget.open);
+          }}
+        >
+          <summary
+            className="flex list-none items-center justify-between gap-4"
+            onClick={(event) => {
+              if (blockReason) {
+                event.preventDefault();
+              }
+            }}
+          >
+            <div className="space-y-1">
+              <p className="text-lg font-semibold tracking-tight">
+                Environment
+              </p>
+              <p className="text-muted-foreground text-sm">
+                Kubectl and plugin diagnostics for this machine.
+              </p>
+            </div>
+            <ChevronDown className="h-4 w-4 transition-transform group-open:rotate-180" />
+          </summary>
+          <div className="mt-4">
+            <InfoPanel
+              info={info}
+              hideHeader
+              className="border-0 bg-transparent p-0 shadow-none"
+              contentClassName="px-0"
+            />
+          </div>
+        </details>
 
         <Separator />
 
