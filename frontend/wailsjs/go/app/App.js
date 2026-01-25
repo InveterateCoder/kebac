@@ -5,3 +5,27 @@
 export function GetKubectlInfo() {
   return window['go']['app']['App']['GetKubectlInfo']();
 }
+
+export function ListContainers(arg1, arg2, arg3) {
+  return window['go']['app']['App']['ListContainers'](arg1, arg2, arg3);
+}
+
+export function ListContexts() {
+  return window['go']['app']['App']['ListContexts']();
+}
+
+export function ListNamespaces(arg1) {
+  return window['go']['app']['App']['ListNamespaces'](arg1);
+}
+
+export function ListPods(arg1, arg2) {
+  return window['go']['app']['App']['ListPods'](arg1, arg2);
+}
+
+export function OpenExec(arg1) {
+  return window['go']['app']['App']['OpenExec'](arg1);
+}
+
+export function OpenPortForward(arg1) {
+  return window['go']['app']['App']['OpenPortForward'](arg1);
+}

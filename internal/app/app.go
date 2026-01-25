@@ -1,10 +1,6 @@
 package app
 
-import (
-	"context"
-
-	"github.com/InveterateCoder/kebac/internal/command"
-)
+import "context"
 
 type App struct {
 	ctx context.Context
@@ -20,8 +16,4 @@ func NewApp() (*App, func(ctx context.Context)) {
 
 func (a *App) startup(ctx context.Context) {
 	a.ctx = ctx
-}
-
-func (a *App) GetKubectlInfo() command.CommandInfo {
-	return command.Cmd.GetInfo()
 }

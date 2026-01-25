@@ -1,7 +1,6 @@
 package command
 
 import (
-	"bufio"
 	"bytes"
 	"fmt"
 	"os/exec"
@@ -16,38 +15,9 @@ type command struct {
 var Cmd *command
 
 func init() {
-	Cmd = &command{}
-	Cmd.cmd = "kubectl"
-	path, err := exec.LookPath(Cmd.cmd)
-	if err != nil {
-		Cmd.info.Error = err.Error()
-		return
+	Cmd = &command{
+		cmd: "kubectl",
 	}
-	Cmd.info.KubectlPath = path
-	if Cmd.info.KubectlPath == "" {
-		return
-	}
-
-	out, err := Cmd.kubectl("plugin", "list")
-	if err != nil {
-		Cmd.info.Error = err.Error()
-		return
-	}
-	scanner := bufio.NewScanner(strings.NewReader(out))
-	for scanner.Scan() {
-		line := strings.TrimSpace(scanner.Text())
-		if line == "" {
-			continue
-		}
-		if strings.Contains(line, "kubectl-oidc_login") {
-			Cmd.info.KubeloginPath = line
-			break
-		}
-	}
-	if err := scanner.Err(); err != nil {
-		Cmd.info.Error = err.Error()
-	}
-	Cmd.info.Error = fmt.Errorf("hello there").Error()
 }
 
 func (c *command) kubectl(args ...string) (string, error) {
