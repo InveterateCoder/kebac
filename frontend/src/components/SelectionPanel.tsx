@@ -7,6 +7,7 @@ import {
   CardTitle,
 } from "@/components/ui/card"
 import { ResourceSelect } from "@/components/ResourceSelect"
+import { SearchableSelect } from "@/components/SearchableSelect"
 
 type SelectionPanelProps = {
   contexts: string[]
@@ -67,7 +68,7 @@ export function SelectionPanel({
           options={contexts}
           onChange={onContextChange}
         />
-        <ResourceSelect
+        <SearchableSelect
           label="Namespace"
           placeholder={loading?.namespaces ? "Loading namespaces..." : "Select namespace"}
           value={selectedNamespace}
