@@ -394,7 +394,14 @@ function App() {
             <TabsTrigger value="workspace">Workspace</TabsTrigger>
           </TabsList>
           <TabsContent value="history" className="mt-6">
-            <HistoryPanel entries={history} onReplay={handleReplay} />
+            <HistoryPanel
+              entries={history}
+              onReplay={handleReplay}
+              onRemove={(id) =>
+                setHistory((prev) => prev.filter((entry) => entry.id !== id))
+              }
+              onClear={() => setHistory([])}
+            />
           </TabsContent>
           <TabsContent value="workspace" className="mt-6">
             {blockReason ? (

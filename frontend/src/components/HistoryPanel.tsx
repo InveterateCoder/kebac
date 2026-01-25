@@ -9,13 +9,21 @@ import {
 } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
 import type { HistoryEntry } from "@/types";
+import { Trash2 } from "lucide-react";
 
 type HistoryPanelProps = {
   entries: HistoryEntry[];
   onReplay: (entry: HistoryEntry) => void;
+  onRemove: (id: string) => void;
+  onClear: () => void;
 };
 
-export function HistoryPanel({ entries, onReplay }: HistoryPanelProps) {
+export function HistoryPanel({
+  entries,
+  onReplay,
+  onRemove,
+  onClear,
+}: HistoryPanelProps) {
   if (entries.length === 0) {
     return (
       <Card className="bg-card/80">
@@ -36,14 +44,19 @@ export function HistoryPanel({ entries, onReplay }: HistoryPanelProps) {
 
   return (
     <Card className="bg-card/80">
-      <CardHeader>
-        <CardTitle className="text-2xl font-semibold tracking-tight">
-          History
-        </CardTitle>
-        <CardDescription>
-          Re-run recent port-forward and exec actions.
-        </CardDescription>
-      </CardHeader>
+        <CardHeader className="flex flex-row items-start justify-between gap-4">
+          <div className="space-y-1.5">
+          <CardTitle className="text-2xl font-semibold tracking-tight">
+            History
+          </CardTitle>
+          <CardDescription>
+            Re-run recent port-forward and exec actions.
+          </CardDescription>
+          </div>
+          <Button variant="outline" size="sm" onClick={onClear}>
+            Clear all
+          </Button>
+        </CardHeader>
       <CardContent className="space-y-4">
         {entries.map((entry, index) => {
           const meta =
@@ -66,7 +79,17 @@ export function HistoryPanel({ entries, onReplay }: HistoryPanelProps) {
                   <p className="text-muted-foreground text-xs">{meta}</p>
                   <p className="text-muted-foreground text-xs">{timestamp}</p>
                 </div>
-                <Button onClick={() => onReplay(entry)}>Replay</Button>
+                <div className="flex items-center gap-2">
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    onClick={() => onRemove(entry.id)}
+                    aria-label="Remove history entry"
+                  >
+                    <Trash2 className="h-4 w-4" />
+                  </Button>
+                  <Button onClick={() => onReplay(entry)}>Replay</Button>
+                </div>
               </div>
               {index < entries.length - 1 ? <Separator /> : null}
             </div>
