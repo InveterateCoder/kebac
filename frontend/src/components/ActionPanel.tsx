@@ -127,11 +127,11 @@ export function ActionPanel({
             <Input
               value={execCommand}
               onChange={(event) => onExecCommandChange(event.target.value)}
-              placeholder="sh"
+              placeholder="Default shell"
               disabled={disabled}
             />
             <p className="text-muted-foreground text-xs">
-              Leave blank to default to <span className="font-semibold">sh</span>.
+              Leave blank to use the default shell for this OS.
             </p>
           </div>
           <p className="text-muted-foreground text-xs">{execPreview}</p>

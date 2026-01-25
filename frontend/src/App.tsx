@@ -44,7 +44,7 @@ function App() {
 
   const [localPort, setLocalPort] = useState("5432");
   const [remotePort, setRemotePort] = useState("5432");
-  const [execCommand, setExecCommand] = useState("sh");
+  const [execCommand, setExecCommand] = useState("");
 
   const [loading, setLoading] = useState({
     contexts: false,
