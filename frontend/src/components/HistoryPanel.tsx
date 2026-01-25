@@ -81,13 +81,13 @@ export function HistoryPanel({
                     <Badge variant="secondary">
                       {entry.kind === "port-forward" ? "Port forward" : "Exec"}
                     </Badge>
-                    <Badge className="bg-sky-500 text-white">
+                    <Badge className="bg-sky-700 text-white">
                       {entry.context}
                     </Badge>
-                    <Badge className="bg-emerald-500 text-white">
+                    <Badge className="bg-emerald-700 text-white">
                       {entry.namespace}
                     </Badge>
-                    <Badge className="bg-amber-500 text-white">{entry.pod}</Badge>
+                    <Badge className="bg-amber-700 text-white">{entry.pod}</Badge>
                   </div>
                   <p className="text-muted-foreground text-xs">{meta}</p>
                   <p className="text-muted-foreground text-xs">{timestamp}</p>
