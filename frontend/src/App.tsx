@@ -1,28 +1,41 @@
 import { useEffect, useState } from "react";
 import { GetKubectlInfo } from "../wailsjs/go/app/App";
+import type { command } from "wailsjs/go/models";
 
 function App() {
-  const [path, setPath] = useState("");
+  const [info, setInfo] = useState<command.CommandInfo | null>(null);
+  const [err, setErr] = useState("");
+  const [isReady, setIsReady] = useState(false);
+
+  useEffect(() => {
+    if (info) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
+      setIsReady(
+        !!err && !!info.kubectlPath && !!info.kubectlPath && !info.error,
+      );
+    }
+  }, [info, err]);
 
   useEffect(() => {
     let alive = true;
     GetKubectlInfo()
       .then((res) => {
-        if (alive) setPath(JSON.stringify(res));
+        if (alive) setInfo(res);
       })
       .catch((err) => {
         if (alive) {
-          setPath(err.message);
+          setErr(err.message);
         }
       });
     return () => {
       alive = false;
     };
   });
+
   return (
     <div className="mx-auto h-screen max-w-7xl px-4">
       <div className="flex flex-col gap-3">
-        <div className="flex-1">{path}</div>
+        <div className="flex-1">{info?.kubectlPath}</div>
         <div className="flex flex-row gap-3">
           <div className="flex-1">1</div>
           <div className="flex-1">1</div>
