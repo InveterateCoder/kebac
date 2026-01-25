@@ -80,7 +80,7 @@ export function SelectionPanel({
           disabled={disabled || !selectedContext}
           hint={selectedContext ? "Active namespaces only." : "Select a context first."}
         />
-        <ResourceSelect
+        <SearchableSelect
           label="Pod"
           placeholder={loading?.pods ? "Loading pods..." : "Select pod"}
           value={selectedPod}
