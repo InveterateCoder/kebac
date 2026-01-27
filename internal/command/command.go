@@ -22,6 +22,7 @@ func init() {
 
 func (c *command) kubectl(args ...string) (string, error) {
 	cmd := exec.Command(c.cmd, args...)
+	setCmdSysProcAttr(cmd)
 
 	var stderr bytes.Buffer
 	cmd.Stderr = &stderr

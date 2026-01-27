@@ -94,7 +94,7 @@ func quoteCmdArg(value string) string {
 	if !strings.ContainsAny(value, " \t\"") {
 		return value
 	}
-	return `"` + strings.ReplaceAll(value, `"`, `\"`) + `"`
+	return `"` + strings.ReplaceAll(value, `"`, `""`) + `"`
 }
 
 func escapeAppleScript(value string) string {
