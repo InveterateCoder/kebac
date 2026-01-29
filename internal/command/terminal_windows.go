@@ -3,10 +3,10 @@
 package command
 
 import (
+	"fmt"
 	"os/exec"
+	"strings"
 	"syscall"
-
-	"golang.org/x/sys/windows"
 )
 
 func setCmdSysProcAttr(cmd *exec.Cmd) {
@@ -21,9 +21,40 @@ func (c *command) OpenTerminal(args ...string) error {
 		bin = c.info.KubectlPath
 	}
 
-	cmd := exec.Command(bin, args...)
+	shell := "powershell.exe"
+	if _, err := exec.LookPath(shell); err != nil {
+		shell = "pwsh"
+	}
+
+	cmdLine := joinPowerShellArgs(append([]string{bin}, args...))
+	command := fmt.Sprintf(
+		"Start-Process -FilePath %s -ArgumentList %s",
+		quotePowerShellLiteral(shell),
+		formatPowerShellArray([]string{"-NoExit", "-Command", cmdLine}),
+	)
+	cmd := exec.Command(shell, "-NoProfile", "-Command", command)
 	cmd.SysProcAttr = &syscall.SysProcAttr{
-		CreationFlags: windows.CREATE_NEW_CONSOLE,
+		HideWindow: true,
 	}
 	return cmd.Start()
+}
+
+func joinPowerShellArgs(args []string) string {
+	quoted := make([]string, 0, len(args))
+	for _, arg := range args {
+		quoted = append(quoted, quotePowerShellLiteral(arg))
+	}
+	return "& " + strings.Join(quoted, " ")
+}
+
+func formatPowerShellArray(args []string) string {
+	quoted := make([]string, 0, len(args))
+	for _, arg := range args {
+		quoted = append(quoted, quotePowerShellLiteral(arg))
+	}
+	return "@(" + strings.Join(quoted, ",") + ")"
+}
+
+func quotePowerShellLiteral(value string) string {
+	return "'" + strings.ReplaceAll(value, "'", "''") + "'"
 }

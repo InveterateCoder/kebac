@@ -2,7 +2,6 @@ package app
 
 import (
 	"fmt"
-	"runtime"
 	"strings"
 
 	"github.com/InveterateCoder/kebac/internal/command"
@@ -47,7 +46,7 @@ func (a *App) OpenExec(req ExecRequest) error {
 
 	cmd := strings.TrimSpace(req.Command)
 	if cmd == "" {
-		cmd = defaultExecShell()
+		cmd = "sh"
 	}
 
 	args := []string{
@@ -66,13 +65,4 @@ func (a *App) OpenExec(req ExecRequest) error {
 	args = append(args, strings.Fields(cmd)...)
 
 	return command.Cmd.OpenTerminal(args...)
-}
-
-func defaultExecShell() string {
-	switch runtime.GOOS {
-	case "windows":
-		return "powershell"
-	default:
-		return "sh"
-	}
 }
