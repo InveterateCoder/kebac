@@ -21,9 +21,9 @@ func (c *command) OpenTerminal(args ...string) error {
 		bin = c.info.KubectlPath
 	}
 
-	shell := "powershell.exe"
+	shell := "pwsh"
 	if _, err := exec.LookPath(shell); err != nil {
-		shell = "pwsh"
+		shell = "powershell.exe"
 	}
 
 	cmdLine := joinPowerShellArgs(append([]string{bin}, args...))
